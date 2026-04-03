@@ -1,54 +1,41 @@
 # GitHub CR / CI Demo
 
-This repository is a minimal front-end project built for a fast demo of GitHub collaboration workflows. The app is intentionally simple. The focus is:
+一个最小前端演示仓库，用于展示 GitHub Code Review 和 CI 的完整协作流程。
 
-- code review through pull requests
-- continuous integration through GitHub Actions
-- AI-shareable project context through structured docs
+前端代码故意保持最简，重点在链路：
 
-## Quick Start
+```
+本地改代码 → push → CI 自动检查 → 提 PR → AI 自动 Review → 人工 Review → merge
+```
+
+**[完整中文指南 → docs/指南.md](docs/指南.md)**
+
+---
+
+## 快速开始
 
 ```bash
 npm install
-npm run check
+npm run check    # 本地验证（等价于 CI 跑的内容）
+npm run dev      # 启动开发服务器
 ```
 
-Optional:
+## 核心配置文件
 
-```bash
-bun install
-bun run lint
-bun run build
+| 文件 | 作用 |
+|------|------|
+| `.github/workflows/ci.yml` | CI：push/PR 时自动跑 lint + build |
+| `.github/workflows/claude-review.yml` | AI Review：PR 时 Gemini 自动打分（Claude 预留） |
+| `.github/pull_request_template.md` | PR 模板：含前端五维打分表 |
+| `docs/指南.md` | 中文主文档：原理、配置、演示流程 |
+
+## GitHub 仓库设置
+
+```
+Settings → Branches → main → 开启 branch protection：
+✅ Require pull request before merging（至少 1 approval）
+✅ Require status checks（添加 "validate"）
+✅ Require conversation resolution
 ```
 
-## What To Demo
-
-1. Create a repository on GitHub and push this folder.
-2. Replace the placeholder in `.github/CODEOWNERS`.
-3. Create a feature branch such as `feature/update-hero-copy`.
-4. Change a small UI text in `src/main.js`.
-5. Push and open a pull request.
-6. Show the PR template, review checklist, and CI checks.
-7. Merge after review approval.
-
-## Repository Structure
-
-- `src/`: minimal front-end files
-- `.github/`: GitHub review and CI configuration
-- `docs/`: reusable context for human and AI collaborators
-
-## Suggested GitHub Settings
-
-- Protect `main`
-- Require at least one approval
-- Require status checks before merge
-- Disable direct push to protected branch
-
-## Core Commands
-
-```bash
-npm run dev
-npm run lint
-npm run build
-npm run check
-```
+详见 [docs/github-setup-checklist.md](docs/github-setup-checklist.md)

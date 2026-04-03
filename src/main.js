@@ -18,7 +18,7 @@ const checkpoints = [
 const app = document.querySelector("#app");
 
 app.innerHTML = `
-  <main class="shell test">
+  <main class="shell">
     <section class="hero">
       <p class="eyebrow">Front-end demo for GitHub workflow</p>
       <h1>Small codebase, visible CR and CI process.</h1>
@@ -27,7 +27,7 @@ app.innerHTML = `
         branch, pull request, automated checks, and reviewer guidance.
       </p>
     </section>
-    <section class="grid">
+    <section class="grid cards">
       ${checkpoints
         .map(
           (item) => `
