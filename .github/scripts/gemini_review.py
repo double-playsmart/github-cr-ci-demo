@@ -1,4 +1,4 @@
-import os, json, urllib.request, subprocess, sys, re
+import os, json, urllib.request, urllib.error, subprocess, sys, re
 
 diff = open("diff.txt").read() or "(empty diff)"
 key  = os.environ["GEMINI_API_KEY"]
@@ -20,9 +20,16 @@ prompt = (
 )
 
 payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
-url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
+url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
 req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-resp = json.loads(urllib.request.urlopen(req).read())
+
+try:
+    resp = json.loads(urllib.request.urlopen(req).read())
+except urllib.error.HTTPError as e:
+    body = e.read().decode()
+    print(f"Gemini API error {e.code}: {body}", file=sys.stderr)
+    sys.exit(1)
+
 review = resp["candidates"][0]["content"]["parts"][0]["text"]
 
 m = re.search(r"TOTAL:\s*(\d+)", review)
@@ -31,7 +38,7 @@ passed = total >= 35
 verdict = f"{'✅' if passed else '❌'} 评分 {total}/50，{'建议合并' if passed else '建议修改后再合并'}"
 
 body = (
-    f"## AI Code Review（Gemini 2.0 Flash）\n\n"
+    f"## AI Code Review（Gemini 1.5 Flash）\n\n"
     f"{review}\n\n"
     f"---\n**{verdict}**\n*由 Gemini 自动生成 · 不替代 CI 检查*"
 )
