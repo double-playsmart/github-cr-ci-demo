@@ -27,9 +27,12 @@ src/style.css                 # CSS Grid 布局、渐变、backdrop-filter
     claude-review.yml         # AI PR Review：当前实际跑 Gemini（见下方说明）
   scripts/
     gemini_review.py          # Gemini review 实现：读 diff → 调 API → 贴 PR 评论，总分 <35/50 则 workflow 失败
-  ISSUE_TEMPLATE/             # GitHub Issue 结构化表单模板（bug report / feature request）
   pull_request_template.md    # PR 填写模板
-docs/                         # 面向 AI 的文档：demo 脚本、设置清单、路线图
+docs/
+    指南.md                   # 完整技术文档（原理 + 配置）
+    demo-script.md            # 演示脚本（含坏代码速查）
+    汇报总结.md               # 面向团队的汇报材料
+    roadmap.md                # 四级进阶路线图
 ```
 
 ## CI 流程（ci.yml）
@@ -51,7 +54,6 @@ PR 打开/更新时触发，**当前实际运行 Gemini**（需配置 Secret `GE
 
 ## GitHub 协作配置
 
-- `ISSUE_TEMPLATE/`：New Issue 时展示结构化表单（bug report / feature request），避免信息不全
 - `pull_request_template.md`：开 PR 时自动填充描述模板
 - `CODEOWNERS`：指定代码 owner，PR 自动 request review
 

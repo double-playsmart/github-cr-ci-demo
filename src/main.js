@@ -18,9 +18,9 @@ const checkpoints = [
 const app = document.querySelector("#app");
 
 app.innerHTML = `
-  <main class="shell aaaa">
+  <main class="shell">
     <section class="hero">
-      <p class="eyebrow">Front-end demo for GitHub workflow ~</p>
+      <p class="eyebrow">Front-end demo for GitHub workflow</p>
       <h1>Small codebase, visible CR and CI process.</h1>
       <p class="intro">
         This project exists to demonstrate a basic GitHub collaboration pipeline:
