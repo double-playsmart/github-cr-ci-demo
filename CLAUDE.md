@@ -24,8 +24,10 @@ src/style.css                 # CSS Grid 布局、渐变、backdrop-filter
 .github/
   workflows/
     ci.yml                    # CI：在 push/PR 时跑 lint + build
-    claude-review.yml         # 可选：Claude Code PR 自动 review（需配置 ANTHROPIC_API_KEY）
-  ISSUE_TEMPLATE/             # Bug report / Feature request 模板
+    claude-review.yml         # AI PR Review：当前实际跑 Gemini（见下方说明）
+  scripts/
+    gemini_review.py          # Gemini review 实现：读 diff → 调 API → 贴 PR 评论，总分 <35/50 则 workflow 失败
+  ISSUE_TEMPLATE/             # GitHub Issue 结构化表单模板（bug report / feature request）
   pull_request_template.md    # PR 填写模板
 docs/                         # 面向 AI 的文档：demo 脚本、设置清单、路线图
 ```
@@ -38,9 +40,13 @@ docs/                         # 面向 AI 的文档：demo 脚本、设置清单
 
 步骤：checkout → 安装 Node → `npm ci` → `npm run lint` → `npm run build`
 
-## Claude PR Review（可选）
+## AI PR Review
 
-`.github/workflows/claude-review.yml` 在 PR 打开/更新时触发 AI 自动 review。需在仓库 Secrets 中配置 `ANTHROPIC_API_KEY`。详见 `docs/claude-review-setup.md`。
+`.github/workflows/claude-review.yml` 在 PR 打开/更新时触发，**当前实际运行 Gemini**（需配置 Secret `GEMINI_API_KEY`）。
+
+执行路径：workflow 生成 `diff.txt` → 调用 `scripts/gemini_review.py` → 脚本用 Gemini API 对 diff 按五维度（功能正确性/代码质量/性能/安全性/可维护性）各评 0-10 分，总分 ≥ 35/50 通过，< 35 则 workflow 失败。评审结果自动贴到 PR 评论。
+
+**切换到 Claude**：在仓库 Secrets 加 `ANTHROPIC_API_KEY`，注释掉 workflow 中的 `gemini-review` job，取消注释 `claude-review` job 即可。详见 `docs/claude-review-setup.md`。
 
 ## 分支与 PR 规范
 
