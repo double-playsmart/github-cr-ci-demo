@@ -18,7 +18,7 @@ const checkpoints = [
 const app = document.querySelector("#app");
 
 app.innerHTML = `
-  <main class="shell aaaa">
+  <main class="shell aaaa bbbb cccc">'
     <section class="hero">
       <p class="eyebrow">Front-end demo for GitHub workflow ~</p>
       <h1>Small codebase, visible CR and CI process.</h1>
