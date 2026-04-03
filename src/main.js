@@ -27,7 +27,7 @@ app.innerHTML = `
         branch, pull request, automated checks, and reviewer guidance.
       </p>
     </section>
-    <section class="grid">
+    <section class="grid cards">
       ${checkpoints
         .map(
           (item) => `
