@@ -1,0 +1,21 @@
+code_review:
+  # 只显示 MEDIUM 及以上严重级别，过滤噪音
+  comment_severity_threshold: MEDIUM
+
+  # 单次最多评论数
+  max_review_comments: 15
+
+  pull_request_opened:
+    summary: true        # PR 打开时自动生成摘要
+    code_review: true    # PR 打开时自动执行审查
+    include_drafts: false # 草稿 PR 不触发
+
+# 不需要审查的文件
+ignore_patterns:
+  - "*.lock"
+  - "dist/**"
+  - "node_modules/**"
+  - "*.min.js"
+  - "*.min.css"
+  - "docs/**"
+  - ".github/**"
