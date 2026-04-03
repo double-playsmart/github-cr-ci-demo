@@ -3,7 +3,6 @@ import os, json, urllib.request, urllib.error, subprocess, sys, re
 key = os.environ["GEMINI_API_KEY"]
 pr  = os.environ["PR_NUMBER"]
 
-# 自动发现可用模型（优先快速模型）
 def pick_model():
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={key}"
     data = json.loads(urllib.request.urlopen(url).read())
@@ -13,7 +12,6 @@ def pick_model():
     for name in prefer:
         if name in available:
             return name
-    # 兜底：取第一个支持 generateContent 的
     for m in data.get("models", []):
         if "generateContent" in m.get("supportedGenerationMethods", []):
             return m["name"].split("/")[-1]
@@ -26,16 +24,14 @@ diff = open("diff.txt").read() or "(empty diff)"
 
 prompt = (
     "你是一位资深前端工程师，请对以下 PR diff 进行 Code Review。\n\n"
-    "按五个维度各给 0-10 分：\n"
-    "1. 功能正确性（逻辑是否正确，有无明显 bug）\n"
-    "2. 代码质量（可读性、命名、结构）\n"
-    "3. 性能（有无不必要的重渲染、大循环等）\n"
-    "4. 安全性（有无 XSS、数据泄露等风险）\n"
-    "5. 可维护性（是否易于后续修改）\n\n"
-    "输出格式（严格遵守）：\n"
-    "先输出五行评分，每行格式：维度名：X/10 - 简短说明\n"
-    "然后输出一行总分：TOTAL: XX/50（XX 为五项之和，这行必须存在）\n"
-    "最后输出综合建议（2-3 句话，中文）。\n\n"
+    "严格按照以下格式输出，每行一条，不要输出其他内容：\n"
+    "SCORE|功能正确性|<0-10分>|<一句话说明>\n"
+    "SCORE|代码质量|<0-10分>|<一句话说明>\n"
+    "SCORE|性能|<0-10分>|<一句话说明>\n"
+    "SCORE|安全性|<0-10分>|<一句话说明>\n"
+    "SCORE|可维护性|<0-10分>|<一句话说明>\n"
+    "TOTAL|<五项总分>\n"
+    "COMMENT|<2-3句综合建议，中文>\n\n"
     "Diff:\n" + diff
 )
 
@@ -49,18 +45,62 @@ except urllib.error.HTTPError as e:
     print(f"Gemini API error {e.code}: {e.read().decode()}", file=sys.stderr)
     sys.exit(1)
 
-review = resp["candidates"][0]["content"]["parts"][0]["text"]
+raw = resp["candidates"][0]["content"]["parts"][0]["text"]
+print(raw)
 
-m = re.search(r"TOTAL:\s*(\d+)", review)
-total = int(m.group(1)) if m else 0
+# 解析结构化输出
+ICONS = {"功能正确性": "🎯", "代码质量": "🧹", "性能": "⚡", "安全性": "🔒", "可维护性": "🔧"}
+
+def score_emoji(s):
+    return "⭐" if s >= 9 else ("🟡" if s >= 7 else "🔴")
+
+rows = []
+total = 0
+comment = ""
+
+for line in raw.splitlines():
+    line = line.strip()
+    if line.startswith("SCORE|"):
+        parts = line.split("|", 3)
+        if len(parts) == 4:
+            _, dim, score_str, desc = parts
+            try:
+                score = int(score_str)
+            except ValueError:
+                score = 0
+            total_check = score
+            icon = ICONS.get(dim, "📌")
+            rows.append(f"| {icon} {dim} | {score_emoji(score)} {score}/10 | {desc} |")
+    elif line.startswith("TOTAL|"):
+        try:
+            total = int(line.split("|", 1)[1])
+        except (ValueError, IndexError):
+            pass
+    elif line.startswith("COMMENT|"):
+        comment = line.split("|", 1)[1] if "|" in line else ""
+
+# 如果解析失败（Gemini 没按格式输出），降级为原始文本
+if not rows:
+    m = re.search(r"TOTAL:\s*(\d+)", raw)
+    total = int(m.group(1)) if m else 0
+    body = f"## 🤖 AI Code Review — {model}\n\n{raw}\n\n"
+else:
+    table = (
+        "| 维度 | 评分 | 说明 |\n"
+        "|------|------|------|\n" +
+        "\n".join(rows)
+    )
+    body = (
+        f"## 🤖 AI Code Review — {model}\n\n"
+        f"{table}\n\n"
+        f"**总分：{total} / 50**\n\n"
+        + (f"> {comment}\n\n" if comment else "")
+    )
+
 passed = total >= 35
-verdict = f"{'✅' if passed else '❌'} 评分 {total}/50，{'建议合并' if passed else '建议修改后再合并'}"
+verdict = f"{'✅ 评分 ' + str(total) + '/50，建议合并' if passed else '❌ 评分 ' + str(total) + '/50，建议修改后再合并'}"
+body += f"---\n{verdict} · 由 Gemini 自动生成 · 不替代 CI 检查"
 
-body = (
-    f"## AI Code Review（{model}）\n\n"
-    f"{review}\n\n"
-    f"---\n**{verdict}**\n*由 Gemini 自动生成 · 不替代 CI 检查*"
-)
 open("review_body.md", "w").write(body)
 subprocess.run(["gh", "pr", "comment", pr, "--body-file", "review_body.md"], check=True)
 sys.exit(0 if passed else 1)
