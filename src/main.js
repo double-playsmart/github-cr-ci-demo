@@ -17,6 +17,15 @@ const checkpoints = [
 
 const app = document.querySelector("#app");
 
+// 故意写烂的函数：命名混乱 + XSS 风险 + 性能问题
+function a(x) {
+  var d = document.getElementById('app')
+  d.innerHTML = x   // 直接注入用户输入，XSS 风险
+  var arr = []
+  for (var i=0;i<10000;i++) { arr.push(i*i*i) }  // 无意义大循环
+  return arr
+}
+
 app.innerHTML = `
   <main class="shell">
     <section class="hero">
