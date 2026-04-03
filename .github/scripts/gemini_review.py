@@ -1,8 +1,28 @@
 import os, json, urllib.request, urllib.error, subprocess, sys, re
 
+key = os.environ["GEMINI_API_KEY"]
+pr  = os.environ["PR_NUMBER"]
+
+# 自动发现可用模型（优先快速模型）
+def pick_model():
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={key}"
+    data = json.loads(urllib.request.urlopen(url).read())
+    prefer = ["gemini-2.5-flash", "gemini-2.0-flash-lite", "gemini-2.5-pro", "gemini-2.0-flash"]
+    available = {m["name"].split("/")[-1] for m in data.get("models", [])
+                 if "generateContent" in m.get("supportedGenerationMethods", [])}
+    for name in prefer:
+        if name in available:
+            return name
+    # 兜底：取第一个支持 generateContent 的
+    for m in data.get("models", []):
+        if "generateContent" in m.get("supportedGenerationMethods", []):
+            return m["name"].split("/")[-1]
+    raise RuntimeError(f"No usable model found. Available: {available}")
+
+model = pick_model()
+print(f"Using model: {model}")
+
 diff = open("diff.txt").read() or "(empty diff)"
-key  = os.environ["GEMINI_API_KEY"]
-pr   = os.environ["PR_NUMBER"]
 
 prompt = (
     "你是一位资深前端工程师，请对以下 PR diff 进行 Code Review。\n\n"
@@ -20,23 +40,14 @@ prompt = (
 )
 
 payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
-url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
+url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
 req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
 
-import time
-resp = None
-for i in range(4):
-    try:
-        resp = json.loads(urllib.request.urlopen(req).read())
-        break
-    except urllib.error.HTTPError as e:
-        body = e.read().decode()
-        if e.code == 429 and i < 3:
-            print(f"429 rate limit, waiting 20s (attempt {i+1}/4)...")
-            time.sleep(20)
-        else:
-            print(f"Gemini API error {e.code}: {body}", file=sys.stderr)
-            sys.exit(1)
+try:
+    resp = json.loads(urllib.request.urlopen(req).read())
+except urllib.error.HTTPError as e:
+    print(f"Gemini API error {e.code}: {e.read().decode()}", file=sys.stderr)
+    sys.exit(1)
 
 review = resp["candidates"][0]["content"]["parts"][0]["text"]
 
@@ -46,11 +57,10 @@ passed = total >= 35
 verdict = f"{'✅' if passed else '❌'} 评分 {total}/50，{'建议合并' if passed else '建议修改后再合并'}"
 
 body = (
-    f"## AI Code Review（Gemini 1.5 Flash）\n\n"
+    f"## AI Code Review（{model}）\n\n"
     f"{review}\n\n"
     f"---\n**{verdict}**\n*由 Gemini 自动生成 · 不替代 CI 检查*"
 )
 open("review_body.md", "w").write(body)
-
 subprocess.run(["gh", "pr", "comment", pr, "--body-file", "review_body.md"], check=True)
 sys.exit(0 if passed else 1)
