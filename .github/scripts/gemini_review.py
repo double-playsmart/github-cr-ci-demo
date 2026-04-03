@@ -97,10 +97,27 @@ else:
         + (f"> {comment}\n\n" if comment else "")
     )
 
-passed = total >= 35
+passed = total >= 40
 verdict = f"{'✅ 评分 ' + str(total) + '/50，建议合并' if passed else '❌ 评分 ' + str(total) + '/50，建议修改后再合并'}"
 body += f"---\n{verdict} · 由 Gemini 自动生成 · 不替代 CI 检查"
 
 open("review_body.md", "w").write(body)
 subprocess.run(["gh", "pr", "comment", pr, "--body-file", "review_body.md"], check=True)
+
+# 自动打标签
+repo = os.environ.get("GITHUB_REPOSITORY", "")
+if total >= 45:
+    label, color, desc = "ai-approved", "0075ca", "AI 评分优秀 ≥45"
+elif total >= 40:
+    label, color, desc = "ai-low-risk", "cfd3d7", "AI 评分良好 40-44"
+elif total >= 35:
+    label, color, desc = "ai-medium-risk", "e4e669", "AI 评分一般 35-39"
+else:
+    label, color, desc = "ai-high-risk", "d93f0b", "AI 评分较低 <35"
+
+# 确保 label 存在
+subprocess.run(["gh", "label", "create", label, "--color", color, "--description", desc, "--repo", repo, "--force"],
+               capture_output=True)
+subprocess.run(["gh", "pr", "edit", pr, "--add-label", label, "--repo", repo], check=True)
+
 sys.exit(0 if passed else 1)
