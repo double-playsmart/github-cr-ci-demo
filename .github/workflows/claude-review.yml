@@ -4,6 +4,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+# ============================================================
+# 当前方案：Gemini 2.0 Flash（免费，适合演示）
+# 切换 Claude：见文件底部注释，需要 ANTHROPIC_API_KEY
+# ============================================================
+
 jobs:
   gemini-review:
     runs-on: ubuntu-latest
@@ -22,8 +27,24 @@ jobs:
         run: |
           git diff origin/${{ github.base_ref }}...HEAD > diff.txt
 
-          PAYLOAD=$(jq -n --rawfile diff diff.txt \
-            '{contents: [{parts: [{text: ("You are a front-end code reviewer. Review this PR diff for correctness, regressions, and obvious risks. Be concise and actionable.\n\nDiff:\n" + $diff)}]}]}')
+          PAYLOAD=$(jq -n --rawfile diff diff.txt '{
+            contents: [{
+              parts: [{
+                text: (
+                  "你是一位资深前端工程师，请对以下 PR diff 进行 Code Review。\n\n" +
+                  "按五个维度各给 0-10 分，并附简短说明：\n" +
+                  "1. **功能正确性**（逻辑是否正确，有无明显 bug）\n" +
+                  "2. **代码质量**（可读性、命名、结构）\n" +
+                  "3. **性能**（有无不必要的重渲染、大循环等）\n" +
+                  "4. **安全性**（有无 XSS、数据泄露等风险）\n" +
+                  "5. **可维护性**（是否易于后续修改）\n\n" +
+                  "最后给出综合建议：是否可以合并，以及最需要改进的一点。\n" +
+                  "输出用中文，格式简洁。\n\n" +
+                  "Diff:\n" + $diff
+                )
+              }]
+            }]
+          }')
 
           RESPONSE=$(curl -s -X POST \
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}" \
@@ -33,9 +54,36 @@ jobs:
           REVIEW=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text')
 
           gh pr comment ${{ github.event.pull_request.number }} \
-            --body "## AI Code Review (Gemini)
+            --body "## AI Code Review（Gemini 2.0 Flash）
 
 ${REVIEW}
 
 ---
-*Automated review by Gemini 2.0 Flash*"
+*由 Gemini 自动生成 · 不替代人工 Review 和 CI 检查*"
+
+# ============================================================
+# Claude 方案（团队目标，需要 Anthropic API Key）
+# 启用步骤：
+#   1. 在 GitHub Secrets 中添加 ANTHROPIC_API_KEY
+#   2. 注释掉上方 gemini-review job
+#   3. 取消注释下方 claude-review job
+# ============================================================
+#
+#  claude-review:
+#    runs-on: ubuntu-latest
+#    permissions:
+#      contents: read
+#      pull-requests: write
+#      issues: write
+#      id-token: write
+#    steps:
+#      - name: Run Claude PR review
+#        uses: anthropics/claude-code-action@v1
+#        with:
+#          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+#          prompt: |
+#            你是一位资深前端工程师，请对这个 PR 进行 Code Review。
+#            按五个维度各给 0-10 分（功能正确性、代码质量、性能、安全性、可维护性），
+#            给出简洁的改进建议，并说明是否建议合并。输出中文。
+#          claude_args: |
+#            --allowedTools "Bash(git diff --name-only HEAD~1),Bash(git diff HEAD~1),Bash(cat package.json),Bash(cat src/main.js),Bash(cat src/style.css)"
