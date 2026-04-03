@@ -4,6 +4,7 @@ This repository is a minimal front-end project built for a fast demo of GitHub c
 
 - code review through pull requests
 - continuous integration through GitHub Actions
+- optional AI review through Claude on pull requests
 - AI-shareable project context through structured docs
 
 ## Quick Start
@@ -42,6 +43,8 @@ bun run build
 - Protect `main`
 - Require at least one approval
 - Require status checks before merge
+- Require conversation resolution before merge
+- Require review from code owners
 - Disable direct push to protected branch
 
 ## Core Commands
@@ -52,3 +55,13 @@ npm run lint
 npm run build
 npm run check
 ```
+
+## Optional Claude Review
+
+If you want Claude to review every pull request automatically:
+
+1. Add the repository secret `ANTHROPIC_API_KEY`
+2. Keep `.github/workflows/claude-review.yml` enabled
+3. Open or update a pull request
+
+Claude review is an extra review layer. It does not replace human approval or CI.
