@@ -1,4 +1,4 @@
-import os, json, urllib.request, subprocess, sys, re
+import os, json, urllib.request, urllib.error, subprocess, sys, re, time
 
 diff = open("diff.txt").read() or "(empty diff)"
 key  = os.environ["GEMINI_API_KEY"]
@@ -19,10 +19,21 @@ prompt = (
     "Diff:\n" + diff
 )
 
+import time
 payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
 url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
 req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-resp = json.loads(urllib.request.urlopen(req).read())
+
+resp = None
+for attempt in range(3):
+    try:
+        resp = json.loads(urllib.request.urlopen(req).read())
+        break
+    except urllib.error.HTTPError as e:
+        if e.code == 429 and attempt < 2:
+            time.sleep(15)
+        else:
+            raise
 review = resp["candidates"][0]["content"]["parts"][0]["text"]
 
 m = re.search(r"TOTAL:\s*(\d+)", review)
