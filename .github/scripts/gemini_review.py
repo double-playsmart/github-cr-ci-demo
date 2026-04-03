@@ -23,7 +23,9 @@ print(f"Using model: {model}")
 diff = open("diff.txt").read() or "(empty diff)"
 
 prompt = (
-    "你是一位资深前端工程师，请对以下 PR diff 进行 Code Review。\n\n"
+    "你是一位资深前端工程师，专注于游戏平台开发（React/TypeScript/SolidJS）。\n"
+    "请对以下 PR diff 进行 Code Review。\n"
+    "评分时额外关注：游戏状态更新的竞态风险、动画帧回调内存泄漏、用户输入未校验（XSS）。\n\n"
     "严格按照以下格式输出，每行一条，不要输出其他内容：\n"
     "SCORE|功能正确性|<0-10分>|<一句话说明>\n"
     "SCORE|代码质量|<0-10分>|<一句话说明>\n"
