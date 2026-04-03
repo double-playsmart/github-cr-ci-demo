@@ -53,8 +53,9 @@ print(raw)
 # 解析结构化输出
 ICONS = {"功能正确性": "🎯", "代码质量": "🧹", "性能": "⚡", "安全性": "🔒", "可维护性": "🔧"}
 
-def score_emoji(s):
-    return "⭐" if s >= 9 else ("🟡" if s >= 7 else "🔴")
+def badge(score):
+    color = "brightgreen" if score >= 9 else ("yellow" if score >= 7 else "red")
+    return f"![{score}/10](https://img.shields.io/badge/{score}%2F10-{color}?style=flat-square)"
 
 rows = []
 total = 0
@@ -70,9 +71,8 @@ for line in raw.splitlines():
                 score = int(score_str)
             except ValueError:
                 score = 0
-            total_check = score
             icon = ICONS.get(dim, "📌")
-            rows.append(f"| {icon} {dim} | {score_emoji(score)} {score}/10 | {desc} |")
+            rows.append(f"| {icon} **{dim}** | {badge(score)} | {desc} |")
     elif line.startswith("TOTAL|"):
         try:
             total = int(line.split("|", 1)[1])
@@ -81,11 +81,15 @@ for line in raw.splitlines():
     elif line.startswith("COMMENT|"):
         comment = line.split("|", 1)[1] if "|" in line else ""
 
+passed = total >= 40
+verdict_icon = "✅" if passed else "❌"
+verdict_text = "建议合并" if passed else "建议修改后再合并"
+
 # 如果解析失败（Gemini 没按格式输出），降级为原始文本
 if not rows:
     m = re.search(r"TOTAL:\s*(\d+)", raw)
     total = int(m.group(1)) if m else 0
-    body = f"## 🤖 AI Code Review — {model}\n\n{raw}\n\n"
+    body = f"## 🤖 AI Code Review\n\n{verdict_icon} **总分 {total} / 50 — {verdict_text}**\n\n---\n\n{raw}\n\n"
 else:
     table = (
         "| 维度 | 评分 | 说明 |\n"
@@ -93,18 +97,17 @@ else:
         "\n".join(rows)
     )
     body = (
-        f"## 🤖 AI Code Review — {model}\n\n"
+        f"## 🤖 AI Code Review\n\n"
+        f"{verdict_icon} **总分 {total} / 50 — {verdict_text}**\n\n"
+        f"---\n\n"
         f"{table}\n\n"
-        f"**总分：{total} / 50**\n\n"
-        + (f"> {comment}\n\n" if comment else "")
+        + (f"> 💬 {comment}\n\n" if comment else "")
+        + f"<sub>由 {model} 自动生成 · 不替代人工 Review 和 CI 检查</sub>"
     )
-
-passed = total >= 40
-verdict = f"{'✅ 评分 ' + str(total) + '/50，建议合并' if passed else '❌ 评分 ' + str(total) + '/50，建议修改后再合并'}"
-body += f"---\n{verdict} · 由 Gemini 自动生成 · 不替代 CI 检查"
 
 open("review_body.md", "w").write(body)
 subprocess.run(["gh", "pr", "comment", pr, "--body-file", "review_body.md"], check=True)
+
 
 # 自动打标签
 repo = os.environ.get("GITHUB_REPOSITORY", "")
