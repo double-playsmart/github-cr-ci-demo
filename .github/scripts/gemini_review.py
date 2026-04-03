@@ -100,7 +100,7 @@ else:
         f"## 🤖 AI Code Review\n\n"
         f"{verdict_icon} **总分 {total} / 50 — {verdict_text}**\n\n"
         + (f"> 💬 {comment}\n\n" if comment else "")
-        + f"<details>\n<summary>📋 查看评分详情</summary>\n\n{table}\n\n</details>\n\n"
+        + f"<details open>\n<summary>📋 评分详情</summary>\n\n{table}\n\n</details>\n\n"
         + f"<sub>由 {model} 自动生成 · 不替代人工 Review 和 CI 检查</sub>"
     )
 
