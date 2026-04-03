@@ -69,14 +69,17 @@ jobs:
             EXIT_CODE=1
           fi
 
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "## AI Code Review（Gemini 2.0 Flash）
+          {
+            echo "## AI Code Review（Gemini 2.0 Flash）"
+            echo ""
+            echo "${REVIEW}"
+            echo ""
+            echo "---"
+            echo "**${VERDICT}**"
+            echo "*由 Gemini 自动生成 · 不替代 CI 检查*"
+          } > review_body.md
 
-${REVIEW}
-
----
-**${VERDICT}**
-*由 Gemini 自动生成 · 不替代 CI 检查*"
+          gh pr comment ${{ github.event.pull_request.number }} --body-file review_body.md
 
           exit $EXIT_CODE
 
