@@ -20,15 +20,23 @@ prompt = (
 )
 
 payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode()
-url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={key}"
+url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
 req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
 
-try:
-    resp = json.loads(urllib.request.urlopen(req).read())
-except urllib.error.HTTPError as e:
-    body = e.read().decode()
-    print(f"Gemini API error {e.code}: {body}", file=sys.stderr)
-    sys.exit(1)
+import time
+resp = None
+for i in range(4):
+    try:
+        resp = json.loads(urllib.request.urlopen(req).read())
+        break
+    except urllib.error.HTTPError as e:
+        body = e.read().decode()
+        if e.code == 429 and i < 3:
+            print(f"429 rate limit, waiting 20s (attempt {i+1}/4)...")
+            time.sleep(20)
+        else:
+            print(f"Gemini API error {e.code}: {body}", file=sys.stderr)
+            sys.exit(1)
 
 review = resp["candidates"][0]["content"]["parts"][0]["text"]
 
