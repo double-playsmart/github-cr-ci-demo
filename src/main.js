@@ -3,15 +3,15 @@ import "./style.css";
 const checkpoints = [
   {
     title: "Code Review",
-    detail: "Use pull requests, PR templates, CODEOWNERS, and review comments."
+    detail: "通过 Pull Request 流程做代码审查，配合 PR 模板、CODEOWNERS 和 Review 评论。"
   },
   {
     title: "Continuous Integration",
-    detail: "Run lint and build checks on every push and pull request."
+    detail: "每次 push 和 PR 自动触发 lint + build 检查，失败时阻断合并。"
   },
   {
-    title: "AI Shared Context",
-    detail: "Keep demo goals, scripts, and next steps in docs for multi-AI handoff."
+    title: "AI Review",
+    detail: "Gemini 自动读取 PR diff，按五个维度打分，评分不足时自动阻断合并。"
   }
 ];
 
@@ -20,11 +20,11 @@ const app = document.querySelector("#app");
 app.innerHTML = `
   <main class="shell">
     <section class="hero">
-      <p class="eyebrow">Front-end demo for GitHub workflow</p>
-      <h1>Small codebase, visible CR and CI process.</h1>
+      <p class="eyebrow">GitHub 工作流演示 · 游戏组前端</p>
+      <h1>最小代码，完整的 CR 和 CI 流程。</h1>
       <p class="intro">
-        This project exists to demonstrate a basic GitHub collaboration pipeline:
-        branch, pull request, automated checks, and reviewer guidance.
+        这个项目演示一套基础的 GitHub 协作链路：
+        切分支 → 提 PR → 自动检查 → AI Review → 人工 Approve → 合并。
       </p>
     </section>
     <section class="grid">
@@ -38,16 +38,6 @@ app.innerHTML = `
           `
         )
         .join("")}
-    </section>
-    <section class="flow">
-      <h2>Suggested demo flow</h2>
-      <ol>
-        <li>Create a feature branch.</li>
-        <li>Make a tiny UI change.</li>
-        <li>Open a pull request.</li>
-        <li>Let CI run lint and build.</li>
-        <li>Review with checklist and merge.</li>
-      </ol>
     </section>
   </main>
 `;
