@@ -19,7 +19,7 @@ const app = document.querySelector("#app");
 
 app.innerHTML = `
   <main class="shell">
-    <section class="hero">
+    <section class="hero hi">
       <p class="eyebrow">Front-end demo for GitHub workflow</p>
       <h1>Small codebase, visible CR and CI process.</h1>
       <p class="intro">
