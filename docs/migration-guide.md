@@ -393,16 +393,16 @@ gh label create "skip-ai-review" --color "ededed" --description "跳过 AI Revie
 
 ---
 
-## 七、给主管的 FAQ
+## 七、FAQ
 
-**Q: 为什么不让 AI 自动阻断？**
-> AI 误判率不低，强制阻断会让开发者忽视 AI 评论。CI + 人工 Approve 是硬门禁，AI 是辅助信息。业界主流（GitHub Copilot Review、CodeRabbit）均如此。
+**Q: 为什么 AI 不阻断合并？**
+> AI 误判率不低，强制阻断会让开发者忽视 AI 评论。CI + 人工 Approve 是硬门禁，AI 是辅助信息。
 
-**Q: 小改动也跑 AI 浪费吗？**
-> Gemini flash-lite 免费 1000 次/天，30 秒出结果，不阻塞任何人。小改动 AI 会标 `effort: 1/5`，Reviewer 秒过。批量翻译类 PR 打 `skip-ai-review` 标签跳过。
+**Q: 每个 PR 都跑 AI 会浪费 token 吗？**
+> 当前免费额度足够验证。正式使用后切换付费模型（Claude/GPT），一次 review 约 ¥0.1，50 个 PR/天 ≈ ¥5。批量翻译类 PR 打 `skip-ai-review` 标签跳过。
 
-**Q: 切 Claude 要改多少？**
-> 改 `pr-agent.yml` 里两行环境变量，注释 Gemini 取消注释 Claude。审查规则在 `.pr_agent.toml`，跟模型无关。
+**Q: 切换模型要改多少？**
+> `pr-agent.yml` 里两行环境变量。审查规则在 `.pr_agent.toml`，跟模型无关。
 
 **Q: 数据安全？**
-> PR-Agent 自托管，代码 diff 只发给你配置的 AI API（Gemini/Claude），不经过任何第三方。
+> 自托管模式，代码 diff 只发给配置的 AI API，不经第三方。
