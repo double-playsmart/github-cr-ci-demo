@@ -18,6 +18,8 @@ require_estimate_effort_to_review = true   # 显示 review 所需精力（1-5）
 require_tests_review = false               # 关闭「No relevant tests」（项目无测试框架）
 require_security_review = true             # 显示安全问题分析
 require_ticket_analysis_review = false     # 关闭 ticket 关联分析（无 issue tracker）
+enable_review_labels_effort = true         # 自动给 PR 打精力标签（effort: 1/5 等）
+enable_review_labels_security = true       # 自动给 PR 打 security 标签
 
 # ============================================================
 # ✏️  定制化审查规则（修改这里，push 后即生效）
@@ -59,6 +61,8 @@ keep_original_user_description = true   # 保留 PR 模板 checklist，AI 描述
 # ── /improve 命令：代码改进建议 ──────────────────────────────
 [pr_code_suggestions]
 num_code_suggestions = 4          # 最多给 4 条改进建议
+focus_only_on_problems = true     # 只输出真正的 bug，过滤风格类建议
+suggestions_score_threshold = 5   # 0-10 分，低于 5 的弱建议不显示
 
 # ── 忽略文件 ─────────────────────────────────────────────────
 [ignore]
