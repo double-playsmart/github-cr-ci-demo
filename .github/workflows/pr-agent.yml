@@ -18,14 +18,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # ── 当前使用 Gemini（免费，1000次/天） ──────────────────
-          CONFIG.MODEL: "gemini/gemini-2.5-flash-lite"
+          # ── Gemini 免费模型（额度独立，用完可互相切换）────────
+          CONFIG.MODEL: "gemini/gemini-3-flash-preview"
+          # CONFIG.MODEL: "gemini/gemini-2.5-flash-lite"
+          # CONFIG.MODEL: "gemini/gemini-2.5-flash"
           GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-          # ── 切换 Claude 时：注释上面两行，取消注释下面两行 ──────
+          # ── 切换 Claude（付费）──────────────────────────────────
           # CONFIG.MODEL: "anthropic/claude-sonnet-4-6"
           # ANTHROPIC.KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-          # ── 切换 GPT 时：同上操作 ────────────────────────────────
+          # ── 切换 GPT（付费）─────────────────────────────────────
           # CONFIG.MODEL: "openai/gpt-4o"
           # OPENAI.KEY: ${{ secrets.OPENAI_API_KEY }}
