@@ -4,6 +4,7 @@
 
 [config]
 response_language = "zh-CN"
+fallback_models = []    # 禁用自动切换到 o4-mini（无 OpenAI key）
 
 # ── 自动触发行为 ─────────────────────────────────────────────
 [github_action_config]
