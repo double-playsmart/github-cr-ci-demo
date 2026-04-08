@@ -6,6 +6,7 @@
 response_language = "zh-CN"
 fallback_models = []           # 禁用自动切换到 o4-mini（无 OpenAI key）
 custom_model_max_tokens = 1048576  # gemini-2.5-flash-lite 不在内置表中，需手动指定（1M context）
+ignore_pr_labels = ["skip-ai-review"]  # 打此标签的 PR 跳过 AI Review
 
 # ── 自动触发行为 ─────────────────────────────────────────────
 [github_action_config]
