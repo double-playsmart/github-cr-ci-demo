@@ -46,9 +46,9 @@
 | `enable_help_text` | `false` | `false` | ❌ | 评论底部 Tips |
 | `require_tests_review` | `false` | `true` | ❌ | 「No relevant tests」提示 |
 | `require_ticket_analysis_review` | `false` | `true` | ❌ | 关联 issue/ticket 分析 |
-| `require_score_review` | — | `false` | ⚪ | 给 PR 打综合分数 |
-| `require_todo_scan` | — | `false` | ⚪ | 列出新增 TODO 注释 |
-| `num_max_findings` | — | `3` | ⚪ | 最多报告几个问题 |
+| `require_score_review` | `true` | `false` | ✅ | 给 PR 打综合分数 |
+| `require_todo_scan` | `true` | `false` | ✅ | 列出新增 TODO/FIXME/HACK |
+| `num_max_findings` | `5` | `3` | ✅ | 最多报告 5 个问题 |
 | `persistent_comment` | — | `true` | ⚪ | 更新同一条评论而非新建 |
 | `final_update_message` | — | `true` | ⚪ | re-review 后加"已更新"通知 |
 | `extra_instructions` | 游戏业务规则 | — | ✅ | 核心定制点，见下方 |
