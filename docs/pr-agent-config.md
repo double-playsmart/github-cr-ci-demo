@@ -1,300 +1,150 @@
 # .pr_agent.toml 配置参考
 
-> PR-Agent 开源版完整配置手册。每个配置项均来自 [官方文档](https://qodo-merge-docs.qodo.ai/usage-guide/configuration_options/) 或 [源码](https://github.com/qodo-ai/pr-agent/blob/main/pr_agent/settings/configuration.toml)。
+> 状态：✅ 已启用 · ❌ 已关闭 · ⚪ 未配置（使用默认值）
 >
-> 常见误区：网上流传的 `[pr_analyzer]`、`[performance_analysis]`、`[security_analysis]`、`[test_analysis]` 等 section **不存在**，写进去会被静默忽略。
+> [官方文档](https://qodo-merge-docs.qodo.ai/usage-guide/configuration_options/) · [源码默认配置](https://github.com/qodo-ai/pr-agent/blob/main/pr_agent/settings/configuration.toml)
 
 ---
 
-## 当前项目配置总览
+## [config] 全局
 
-| Section | Key | 当前值 | 状态 | 说明 |
-|---------|-----|--------|------|------|
-| `[config]` | `response_language` | `"zh-CN"` | ✅ | 中文输出 |
-| | `fallback_models` | `[]` | ✅ | 禁用 fallback，避免切到无 key 的模型 |
-| | `custom_model_max_tokens` | `1048576` | ✅ | flash-lite 不在内置表，需手动指定 |
-| `[github_action_config]` | `auto_review` | `true` | ✅ | PR 打开时自动 review |
-| | `auto_describe` | `true` | ✅ | PR 打开时自动生成描述 |
-| | `auto_improve` | `false` | ✅ | 手动 /improve 触发，省 API 调用 |
-| `[pr_reviewer]` | `require_estimate_effort_to_review` | `true` | ✅ | 精力评估 1-5 |
-| | `require_tests_review` | `false` | ✅ | 无测试框架，关闭 |
-| | `require_security_review` | `true` | ✅ | 安全分析 |
-| | `require_ticket_analysis_review` | `false` | ✅ | 无 issue tracker，关闭 |
-| | `require_can_be_split_review` | `true` | ✅ | 大 PR 提示拆分 |
-| | `enable_review_labels_effort` | `true` | ✅ | 打 effort 标签 |
-| | `enable_review_labels_security` | `true` | ✅ | 打 security 标签 |
-| | `enable_help_text` | `false` | ✅ | 去掉底部 Tips |
-| | `extra_instructions` | 游戏业务规则 | ✅ | 核心定制点 |
-| `[pr_description]` | `publish_labels` | `true` | ✅ | 自动打 PR 类型标签 |
-| | `use_bullet_points` | `true` | ✅ | 列表格式 |
-| | `keep_original_user_description` | `true` | ✅ | 保留 PR 模板 |
-| | `include_generated_by_header` | `false` | ✅ | 去掉水印 |
-| `[pr_code_suggestions]` | `num_code_suggestions` | `4` | ✅ | /improve 最多 4 条 |
-| | `commitable_code_suggestions` | `true` | ✅ | 行内建议 + 一键 commit |
-| | `focus_only_on_problems` | `true` | ✅ | 只输出 bug |
-| | `suggestions_score_threshold` | `5` | ✅ | 过滤低分建议 |
-| `[ignore]` | `glob` | 见 toml | ✅ | 忽略 lock/dist/docs 等 |
-
----
-
-## [config] 全局配置
-
-| Key | 默认值 | 类型 | 说明 |
-|-----|--------|------|------|
-| `model` | — | string | AI 模型，在 pr-agent.yml 的环境变量里设置更方便 |
-| `fallback_models` | `["gpt-4o-mini"]` | list | 主模型失败时的备选。设 `[]` 禁用 |
-| `custom_model_max_tokens` | `-1` | int | 内置表没有的模型需手动指定 context window |
-| `response_language` | `"en"` | string | 输出语言，ISO 格式如 `"zh-CN"` |
-| `max_model_tokens` | `32000` | int | 单次请求 token 上限 |
-| `temperature` | `0.2` | float | 越低越确定性，0.2 适合代码审查 |
-| `ai_timeout` | `120` | int | AI 响应超时秒数 |
-| `verbosity_level` | `0` | int | 输出详细度 0-2 |
-| `seed` | `-1` | int | 固定随机种子，-1 为不固定 |
-| `output_relevant_configurations` | `false` | bool | 在评论里折叠显示当前配置（调试用） |
+| Key | 当前值 | 默认值 | 状态 | 说明 |
+|-----|--------|--------|------|------|
+| `response_language` | `"zh-CN"` | `"en"` | ✅ | 输出语言 |
+| `fallback_models` | `[]` | `["gpt-4o-mini"]` | ✅ | 备选模型，`[]` 禁用 |
+| `custom_model_max_tokens` | `1048576` | `-1` | ✅ | 内置表没有的模型需手动指定 |
+| `max_model_tokens` | — | `32000` | ⚪ | 单次请求 token 上限 |
+| `temperature` | — | `0.2` | ⚪ | 越低越确定性 |
+| `ai_timeout` | — | `120` | ⚪ | AI 响应超时秒数 |
+| `verbosity_level` | — | `0` | ⚪ | 输出详细度 0-2 |
+| `output_relevant_configurations` | — | `false` | ⚪ | 评论里显示当前配置（调试用） |
+| `enable_custom_labels` | — | `false` | ⚪ | 启用自定义标签体系 |
 
 ---
 
 ## [github_action_config] 自动触发
 
-| Key | 默认值 | 说明 | API 消耗 |
-|-----|--------|------|---------|
-| `auto_review` | `true` | PR 打开时自动执行 review | 1 次 |
-| `auto_describe` | `true` | PR 打开时自动生成描述 | 1 次 |
-| `auto_improve` | `false` | PR 打开时自动给修复建议 | 1 次 |
+每个 `true` = 每个 PR 消耗 1 次 API 调用。
 
-全开 = 每个 PR 消耗 3 次 API 调用。当前关闭 auto_improve，每 PR 消耗 2 次。
+| Key | 当前值 | 默认值 | 状态 | 说明 |
+|-----|--------|--------|------|------|
+| `auto_review` | `true` | `true` | ✅ | PR 打开时自动 review |
+| `auto_describe` | `true` | `true` | ✅ | PR 打开时自动生成描述 |
+| `auto_improve` | `false` | `false` | ❌ | PR 打开时自动给修复建议 |
 
 ---
 
-## [pr_reviewer] Review 配置
+## [pr_reviewer] Review
 
-### 内容开关
+| Key | 当前值 | 默认值 | 状态 | 说明 |
+|-----|--------|--------|------|------|
+| `require_estimate_effort_to_review` | `true` | `true` | ✅ | 精力评估 1-5 |
+| `require_security_review` | `true` | `true` | ✅ | 安全问题分析 |
+| `require_can_be_split_review` | `true` | `false` | ✅ | 大 PR 提示拆分 |
+| `enable_review_labels_effort` | `true` | `true` | ✅ | 打 `Review effort x/5` 标签 |
+| `enable_review_labels_security` | `true` | `true` | ✅ | 打 `possible security issue` 标签 |
+| `enable_help_text` | `false` | `false` | ❌ | 评论底部 Tips |
+| `require_tests_review` | `false` | `true` | ❌ | 「No relevant tests」提示 |
+| `require_ticket_analysis_review` | `false` | `true` | ❌ | 关联 issue/ticket 分析 |
+| `require_score_review` | — | `false` | ⚪ | 给 PR 打综合分数 |
+| `require_todo_scan` | — | `false` | ⚪ | 列出新增 TODO 注释 |
+| `num_max_findings` | — | `3` | ⚪ | 最多报告几个问题 |
+| `persistent_comment` | — | `true` | ⚪ | 更新同一条评论而非新建 |
+| `final_update_message` | — | `true` | ⚪ | re-review 后加"已更新"通知 |
+| `extra_instructions` | 游戏业务规则 | — | ✅ | 核心定制点，见下方 |
 
-| Key | 默认值 | 说明 |
-|-----|--------|------|
-| `require_estimate_effort_to_review` | `true` | 显示 review 精力评估（1-5） |
-| `require_tests_review` | `true` | 显示「No relevant tests」提示。无测试框架时建议关闭 |
-| `require_security_review` | `true` | 安全问题分析 section |
-| `require_ticket_analysis_review` | `true` | 关联 issue/ticket 分析。无 tracker 时关闭 |
-| `require_can_be_split_review` | `false` | 大 PR 时建议拆分 |
-| `require_score_review` | `false` | 给 PR 打综合分数。一般不需要 |
-| `require_todo_scan` | `false` | 列出新增的 TODO 注释 |
-| `require_estimate_contribution_time_cost` | `false` | 估算资深开发者完成时间（Pro） |
+### extra_instructions 写法
 
-### 输出控制
-
-| Key | 默认值 | 说明 |
-|-----|--------|------|
-| `num_max_findings` | `3` | 最多报告几个问题 |
-| `persistent_comment` | `true` | 更新同一条评论而非新建。减少评论刷屏 |
-| `final_update_message` | `true` | re-review 后加一条"已更新"短通知 |
-| `enable_help_text` | `false` | 评论底部 Tips 文字 |
-| `enable_review_labels_effort` | `true` | 自动打 `Review effort x/5` 标签 |
-| `enable_review_labels_security` | `true` | 有安全问题时打 `possible security issue` 标签 |
-
-### extra_instructions 编写指南
-
-`extra_instructions` 是影响 review 质量最关键的配置。写法建议：
-
-```toml
-extra_instructions = """
+```
 角色定义（一句话）
-
-【分类1：安全性】
-- 具体规则1
-- 具体规则2
-
-【分类2：性能】
-- 具体规则
-
-【分类3：业务专项】
-- 具体规则
-
-输出要求：
-- 语言
-- 格式要求
-"""
+【安全性】具体规则...
+【性能】具体规则...
+【业务专项】具体规则...
+输出要求：语言、格式
 ```
 
-- 规则要**具体可执行**，不要写"注意代码质量"这种空话
-- 按优先级排序，安全 > 性能 > 质量
-- 控制在 500 字以内，太长会占用 token
+规则要具体可执行，控制在 500 字内。
 
 ---
 
 ## [pr_description] 描述生成
 
-| Key | 默认值 | 说明 |
-|-----|--------|------|
-| `publish_labels` | `false` | 自动打 PR 类型标签（Bug fix / Enhancement 等） |
-| `use_bullet_points` | `true` | 描述用列表格式 |
-| `keep_original_user_description` | `false` | 保留原始 PR 描述（模板 checklist），AI 内容追加在下方 |
-| `include_generated_by_header` | `true` | 显示 "Generated by PR-Agent" 水印 |
-| `generate_ai_title` | `false` | AI 重写 PR 标题。一般不开，开发者自己写更准确 |
-| `enable_pr_diagram` | `true` | 生成 Mermaid 流程图。小改动时自动跳过 |
-| `enable_semantic_files_types` | `true` | 按语义分类的文件变更表格 |
-| `collapsible_file_list` | `"adaptive"` | 文件列表折叠：`adaptive`（>6 个文件自动折叠）/ `true` / `false` |
-| `enable_large_pr_handling` | `true` | 大 PR 自动多次 AI 调用 |
-| `publish_description_as_comment` | `false` | 描述发为评论而非写入 PR body |
-| `extra_instructions` | — | 描述生成的额外指令 |
+| Key | 当前值 | 默认值 | 状态 | 说明 |
+|-----|--------|--------|------|------|
+| `publish_labels` | `true` | `false` | ✅ | 自动打 PR 类型标签 |
+| `use_bullet_points` | `true` | `true` | ✅ | 列表格式 |
+| `keep_original_user_description` | `true` | `false` | ✅ | 保留 PR 模板，AI 追加在下方 |
+| `include_generated_by_header` | `false` | `true` | ❌ | "Generated by PR-Agent" 水印 |
+| `generate_ai_title` | — | `false` | ⚪ | AI 重写 PR 标题 |
+| `enable_pr_diagram` | — | `true` | ⚪ | Mermaid 流程图 |
+| `enable_semantic_files_types` | — | `true` | ⚪ | 按语义分类的文件变更表格 |
+| `collapsible_file_list` | — | `"adaptive"` | ⚪ | 文件列表折叠：adaptive / true / false |
+| `enable_large_pr_handling` | — | `true` | ⚪ | 大 PR 多次 AI 调用 |
+| `publish_description_as_comment` | — | `false` | ⚪ | 描述发为评论而非写入 PR body |
 
 ---
 
-## [pr_code_suggestions] /improve 配置
+## [pr_code_suggestions] /improve
 
-| Key | 默认值 | 说明 |
-|-----|--------|------|
-| `num_code_suggestions` | `4` | 最多给几条建议 |
-| `commitable_code_suggestions` | `false` | `true` = 行内贴在 diff 上 + 一键 commit 按钮；`false` = 表格汇总 |
-| `focus_only_on_problems` | `true` | 只输出 bug / 安全问题，过滤风格建议 |
-| `suggestions_score_threshold` | `0` | 0-10，低于此分的建议不显示。设 5 可过滤弱建议 |
-| `dual_publishing_score_threshold` | `-1` | 高分建议同时以表格 + 行内方式发布。-1 为关闭 |
-| `num_code_suggestions_per_chunk` | `3` | 每个代码块最多几条建议 |
-| `max_number_of_calls` | `3` | 大 PR 最多并行几次 AI 调用 |
-| `persistent_comment` | `true` | 更新同一条评论 |
-| `extra_instructions` | — | /improve 的额外指令 |
+| Key | 当前值 | 默认值 | 状态 | 说明 |
+|-----|--------|--------|------|------|
+| `num_code_suggestions` | `4` | `4` | ✅ | 最多几条建议 |
+| `commitable_code_suggestions` | `true` | `false` | ✅ | 行内贴在 diff + 一键 commit |
+| `focus_only_on_problems` | `true` | `true` | ✅ | 只输出 bug，不输出风格建议 |
+| `suggestions_score_threshold` | `5` | `0` | ✅ | 低于此分的建议不显示 |
+| `dual_publishing_score_threshold` | — | `-1` | ⚪ | 高分建议同时表格 + 行内 |
+| `num_code_suggestions_per_chunk` | — | `3` | ⚪ | 每个代码块最多几条 |
+| `max_number_of_calls` | — | `3` | ⚪ | 大 PR 最多并行几次 AI |
+| `persistent_comment` | — | `true` | ⚪ | 更新同一条评论 |
 
 ---
 
-## [ignore] 忽略规则
-
-支持 glob 模式：
+## [ignore] 忽略文件
 
 ```toml
-[ignore]
 glob = [
-  "*.lock",           # 锁文件
-  "dist/**",          # 构建产物
-  "node_modules/**",  # 依赖
-  "*.min.js",         # 压缩文件
-  "*.min.css",
-  "docs/**",          # 文档
-  ".github/**",       # workflow 文件
-  "src/locales/**",   # 翻译文件（按需加）
-  "src/i18n/**",
-  "**/*.generated.*", # 自动生成的文件
+  "*.lock",        "dist/**",       "node_modules/**",
+  "*.min.js",      "*.min.css",     "docs/**",
+  ".github/**",
+  # 按需加：
+  # "src/locales/**",   # 翻译文件
+  # "**/*.generated.*", # 自动生成文件
 ]
 ```
 
-也支持正则（用 `regex` key）：
+---
 
-```toml
-[ignore]
-regex = ["test_.*\\.py"]
-```
+## pr-agent.yml 配置
+
+| 场景 | 改法 |
+|------|------|
+| 默认（PR 打开 + 命令） | `pull_request: [opened, reopened, ready_for_review]` + `issue_comment:` |
+| 只手动命令 | 只留 `issue_comment:` |
+| 每次 push 都 review | types 加 `synchronize` |
+| skip 标签跳过 | job if 加 `!contains(github.event.pull_request.labels.*.name, 'skip-ai-review')` |
+| 切模型 | 注释/取消注释 `CONFIG.MODEL` 和对应 KEY 两行 |
 
 ---
 
-## pr-agent.yml workflow 配置
-
-### 触发条件
-
-```yaml
-# 默认：PR 打开 + 评论命令
-on:
-  pull_request:
-    types: [opened, reopened, ready_for_review]
-  issue_comment:
-
-# 只要手动命令，不自动触发：
-on:
-  issue_comment:
-
-# 加上 synchronize（每次 push 更新都重新 review）：
-on:
-  pull_request:
-    types: [opened, reopened, ready_for_review, synchronize]
-  issue_comment:
-```
-
-### skip 标签拦截
-
-```yaml
-jobs:
-  pr_agent:
-    if: ${{ github.event.sender.type != 'Bot' && !contains(github.event.pull_request.labels.*.name, 'skip-ai-review') }}
-```
-
-在 workflow `if` 条件里拦截，PR-Agent 容器不启动。
-
-注意：`.pr_agent.toml` 的 `ignore_pr_labels` 对 auto actions **不生效**（已验证），必须在 workflow 层面拦截。
-
-### 模型切换
-
-```yaml
-env:
-  # Gemini（免费）
-  CONFIG.MODEL: "gemini/gemini-2.5-flash-lite"
-  GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
-  # Claude（注释上面，取消注释下面）
-  # CONFIG.MODEL: "anthropic/claude-sonnet-4-6"
-  # ANTHROPIC.KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-
-  # GPT（同上）
-  # CONFIG.MODEL: "openai/gpt-4o"
-  # OPENAI.KEY: ${{ secrets.OPENAI_API_KEY }}
-```
-
----
-
-## 可选但未启用的配置
-
-| 配置 | 位置 | 效果 | 未启用原因 |
-|------|------|------|-----------|
-| `auto_improve = true` | `[github_action_config]` | 每个 PR 自动跑 /improve | 多消耗 1 次 API |
-| `enable_custom_labels = true` | `[config]` | 自定义标签（如"游戏业务"） | 默认标签够用 |
-| `generate_ai_title = true` | `[pr_description]` | AI 重写 PR 标题 | 开发者自己写更准确 |
-| `require_score_review = true` | `[pr_reviewer]` | 给 PR 打综合分数 | 定性 review 更实用 |
-| `require_todo_scan = true` | `[pr_reviewer]` | 列出新增 TODO | 按需开启 |
-| `enable_pr_diagram = false` | `[pr_description]` | 关闭 Mermaid 图 | 默认开着，小 PR 自动跳过 |
-| `dual_publishing_score_threshold = 7` | `[pr_code_suggestions]` | 高分建议同时表格 + 行内显示 | commitable 已开启 |
-
----
-
-## 其他真实 section（按需使用）
-
-### [pr_add_docs] — /add_docs 命令
-
-| Key | 默认值 | 说明 |
-|-----|--------|------|
-| `docs_style` | `"Google"` | 文档风格：Google / Sphinx / Numpy / PEP257 |
-
-### [pr_test] — /test 命令
-
-| Key | 默认值 | 说明 |
-|-----|--------|------|
-| `testing_framework` | `"pytest"` | 测试框架名 |
-| `num_tests` | `3` | 生成测试数量（最多 5） |
-| `avoid_mocks` | `false` | 优先用真实对象而非 mock |
-
----
-
-## 常见场景速查
+## 场景速查
 
 | 想要... | 改哪里 |
 |---------|--------|
-| 关闭自动 review | `[github_action_config] auto_review = false` |
-| 关闭自动描述 | `[github_action_config] auto_describe = false` |
-| 完全只用手动命令 | pr-agent.yml 删掉 `pull_request` 触发，只留 `issue_comment` |
-| 加翻译文件忽略 | `[ignore] glob` 加 `"src/locales/**"` |
-| 去掉 effort 标签 | `[pr_reviewer] enable_review_labels_effort = false` |
-| 每次 push 都重新 review | pr-agent.yml 的 types 加 `synchronize` |
-| /improve 改为表格汇总 | `[pr_code_suggestions] commitable_code_suggestions = false` |
-| 增加建议数量 | `[pr_code_suggestions] num_code_suggestions = 6` |
-| 降低过滤阈值看更多建议 | `[pr_code_suggestions] suggestions_score_threshold = 3` |
-| 跳过某个 PR 的 AI review | 给 PR 打 `skip-ai-review` 标签 |
-| 调试配置是否生效 | `[config] output_relevant_configurations = true`，review 评论里会折叠显示当前配置 |
+| 关闭自动 review | `auto_review = false` |
+| 完全手动 | pr-agent.yml 删 `pull_request`，只留 `issue_comment` |
+| 加忽略目录 | `[ignore] glob` 加路径 |
+| 去掉 effort 标签 | `enable_review_labels_effort = false` |
+| /improve 改为表格 | `commitable_code_suggestions = false` |
+| 调试配置 | `output_relevant_configurations = true` |
 
 ---
 
 ## 已知限制
 
-| 限制 | 说明 |
+| 限制 | 应对 |
 |------|------|
-| `ignore_pr_labels` 对 auto actions 不生效 | 必须在 workflow `if` 条件拦截 |
-| `inline_code_comments` 已从源码删除 | /review 只发汇总评论，行内建议用 /improve |
-| 新模型不在内置 MAX_TOKENS 表 | 需配置 `custom_model_max_tokens` |
-| 输出格式（emoji / 折叠结构）不可定制 | 只能通过 `extra_instructions` 影响内容 |
-| 开源版无法阻断合并 | 不设置 GitHub status check，靠 CI + 人工 Approve |
-| `[pr_analyzer]` `[security_analysis]` 等 section 不存在 | 网上流传的假配置，写了也不生效 |
+| 开源版无法阻断合并 | CI + 人工 Approve |
+| `ignore_pr_labels` 对 auto 不生效 | workflow `if` 拦截 |
+| /review 不支持行内评论 | 用 /improve + `commitable_code_suggestions = true` |
+| 新模型不在内置 token 表 | 配 `custom_model_max_tokens` |
+| 输出格式不可定制 | `extra_instructions` 影响内容 |
