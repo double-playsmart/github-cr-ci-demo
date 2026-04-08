@@ -18,18 +18,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # ── Claude（当前，约 ¥0.02/次）─────────────────────────
-          CONFIG.MODEL: "anthropic/claude-haiku-4-5"
-          # CONFIG.MODEL: "anthropic/claude-sonnet-4-6"    # ¥0.2/次，质量更好
-          # CONFIG.MODEL: "anthropic/claude-opus-4-6"      # ¥1/次，最强
+          # ── 价格参考：中等 PR（~15K token）单次 review 估价 ────
+
+          # ── Claude ─────────────────────────────────────────────
+          CONFIG.MODEL: "anthropic/claude-haiku-4-5"       # ~$0.006/次（当前）
+          # CONFIG.MODEL: "anthropic/claude-sonnet-4-6"    # ~$0.06/次 ⭐推荐
+          # CONFIG.MODEL: "anthropic/claude-opus-4-6"      # ~$0.30/次
           ANTHROPIC.KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-          # ── Gemini 免费（各 20 RPD/天，额度独立可轮换）──────────
-          # CONFIG.MODEL: "gemini/gemini-3-flash-preview"
-          # CONFIG.MODEL: "gemini/gemini-2.5-flash-lite"
-          # CONFIG.MODEL: "gemini/gemini-2.5-flash"
+          # ── Gemini（免费 20 RPD/天，绑卡后无限制）──────────────
+          # CONFIG.MODEL: "gemini/gemini-3-flash-preview"  # 免费 20次/天 | 付费 ~$0.01/次
+          # CONFIG.MODEL: "gemini/gemini-2.5-flash-lite"   # 免费 20次/天 | 付费 ~$0.002/次
+          # CONFIG.MODEL: "gemini/gemini-2.5-flash"        # 免费 20次/天 | 付费 ~$0.008/次 ⭐推荐
+          # CONFIG.MODEL: "gemini/gemini-2.5-pro"          # 付费 ~$0.03/次
           # GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-          # ── GPT（付费）─────────────────────────────────────────
-          # CONFIG.MODEL: "openai/gpt-4o"
+          # ── GPT ────────────────────────────────────────────────
+          # CONFIG.MODEL: "openai/gpt-4o-mini"             # ~$0.004/次
+          # CONFIG.MODEL: "openai/gpt-4o"                  # ~$0.05/次 ⭐推荐
           # OPENAI.KEY: ${{ secrets.OPENAI_API_KEY }}
