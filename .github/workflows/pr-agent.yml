@@ -1,0 +1,31 @@
+name: PR Agent
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review] #synchronize 是 PR 更新时触发
+  issue_comment:           # 支持在 PR 评论里输入 /review /describe /ask 等命令
+
+jobs:
+  pr_agent:
+    if: ${{ github.event.sender.type != 'Bot' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: qodo-ai/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # ── 当前使用 Gemini（免费，250次/天） ───────────────────
+          CONFIG.MODEL: "gemini/gemini-2.5-flash"
+          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+          # ── 切换 Claude 时：注释上面两行，取消注释下面两行 ──────
+          # CONFIG.MODEL: "anthropic/claude-sonnet-4-6"
+          # ANTHROPIC.KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          # ── 切换 GPT 时：同上操作 ────────────────────────────────
+          # CONFIG.MODEL: "openai/gpt-4o"
+          # OPENAI.KEY: ${{ secrets.OPENAI_API_KEY }}

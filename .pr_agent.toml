@@ -1,0 +1,57 @@
+# PR-Agent 配置文件
+# 修改后 push 即生效，无需其他操作
+# 文档：https://qodo-merge-docs.qodo.ai/usage-guide/configuration_options/
+
+[config]
+response_language = "zh-CN"
+
+[github_action_config]
+auto_review = true        # PR 打开时自动执行 review
+auto_describe = true      # PR 打开时自动生成描述
+auto_improve = false      # 不自动提代码修改建议（避免太吵）
+
+# ============================================================
+# ✏️  定制化审查规则（修改这里，push 后即生效）
+# ============================================================
+[pr_reviewer]
+extra_instructions = """
+你是一位资深前端工程师，专注于游戏平台开发（React/TypeScript/SolidJS）。
+审查时重点关注以下规则：
+
+【安全性】
+- 禁止将用户输入直接赋值给 innerHTML/outerHTML，防止 XSS 注入
+- 敏感信息（API Key、Token）不得出现在代码中
+
+【性能】
+- 避免在循环内进行 DOM 操作或重复调用高开销函数
+- 避免无意义的大循环（超过 10000 次且无实际业务意义）
+- 事件监听器和定时器必须在组件卸载时清理，防止内存泄漏
+
+【代码质量】
+- 变量、函数命名必须有实际含义，禁止单字母命名（循环变量 i/j/k 除外）
+- 使用 const/let，禁止使用 var
+
+【游戏业务专项】
+- 涉及赔率、金额的数值计算，检查浮点精度问题
+- WebSocket 消息处理必须考虑竞态条件，避免旧消息覆盖新状态
+- 游戏状态变更必须通过统一入口，禁止直接修改状态对象
+
+输出要求：
+- 语言：中文
+- 区分「必须修改」和「建议优化」并明确标注
+- 指出问题时同时给出修改建议
+"""
+
+[pr_description]
+publish_labels = true     # 自动打标签
+
+[ignore]
+glob = [
+  "*.lock",
+  "dist/**",
+  "node_modules/**",
+  "*.min.js",
+  "*.min.css",
+  "docs/**",
+  ".github/**"
+]

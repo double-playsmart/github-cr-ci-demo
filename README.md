@@ -38,4 +38,4 @@ Settings → Branches → main → 开启 branch protection：
 ✅ Require conversation resolution
 ```
 
-详见 [docs/github-setup-checklist.md](docs/github-setup-checklist.md)
+详见 [docs/指南.md](docs/指南.md)
