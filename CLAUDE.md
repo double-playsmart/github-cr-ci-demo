@@ -29,9 +29,8 @@ src/style.css                 # CSS Grid 布局、渐变、backdrop-filter
 .pr_agent.toml                # ★ PR-Agent 配置：审查规则、模型、中文输出
 docs/
     指南.md                   # 完整技术文档（原理 + 配置）
-    demo-script.md            # 演示脚本（含坏代码速查）
     汇报总结.md               # 面向团队的汇报材料
-    roadmap.md                # 四级进阶路线图
+    migration-guide.md        # CR/CI 流程迁移指南
 ```
 
 ## CI 流程（ci.yml）
@@ -66,4 +65,4 @@ PR 打开/更新时触发，使用 **PR-Agent 开源方案**（需配置 Secret 
 
 ## 项目定位
 
-这是一个用于演示 GitHub Code Review 与 CI 流程的教学示例项目。改动应保持最小化、流程可见。进阶计划见 `docs/roadmap.md`（当前处于 Level 1）。
+这是一个用于演示 GitHub Code Review 与 CI 流程的教学示例项目。改动应保持最小化、流程可见。迁移指南见 `docs/migration-guide.md`。
