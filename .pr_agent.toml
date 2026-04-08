@@ -51,8 +51,9 @@ extra_instructions = """
 
 # ── PR 描述生成 ───────────────────────────────────────────────
 [pr_description]
-publish_labels = true             # 自动打标签
-use_bullet_points = true          # 描述用列表格式
+publish_labels = true                    # 自动打标签
+use_bullet_points = true                 # 描述用列表格式
+keep_original_user_description = true   # 保留 PR 模板 checklist，AI 描述追加在下方
 
 # ── /improve 命令：代码改进建议 ──────────────────────────────
 [pr_code_suggestions]

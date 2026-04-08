@@ -14,9 +14,8 @@ const u = location.search; // 单字母命名，含义不明
 app.innerHTML = `<div class="user-info">${u}</div>`; // 未经转义直接注入
 
 // ❌ 问题2：无意义大循环，阻塞主线程
-let x = 0;
 for (let i = 0; i < 100000; i++) {
-  x += i;
+  // 空循环，无实际业务意义
 }
 
 app.innerHTML += `
