@@ -25,9 +25,6 @@ src/style.css                 # CSS Grid 布局、渐变、backdrop-filter
   workflows/
     ci.yml                    # CI：在 push/PR 时跑 lint + build
     pr-agent.yml              # ★ AI PR Review：PR-Agent 开源方案（当前使用）
-    claude-review.yml         # 旧方案备份（已停用，仅手动触发）
-  scripts/
-    gemini_review.py          # 旧方案备份（自定义五维打分，已被 PR-Agent 替代）
   pull_request_template.md    # PR 填写模板
 .pr_agent.toml                # ★ PR-Agent 配置：审查规则、模型、中文输出
 docs/
