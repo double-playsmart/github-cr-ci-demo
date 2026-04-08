@@ -24,10 +24,12 @@ src/style.css                 # CSS Grid 布局、渐变、backdrop-filter
 .github/
   workflows/
     ci.yml                    # CI：在 push/PR 时跑 lint + build
-    claude-review.yml         # AI PR Review：当前实际跑 Gemini（见下方说明）
+    pr-agent.yml              # ★ AI PR Review：PR-Agent 开源方案（当前使用）
+    claude-review.yml         # 旧方案备份（已停用，仅手动触发）
   scripts/
-    gemini_review.py          # Gemini review 实现：读 diff → 调 API → 贴 PR 评论，总分 <35/50 则 workflow 失败
+    gemini_review.py          # 旧方案备份（自定义五维打分，已被 PR-Agent 替代）
   pull_request_template.md    # PR 填写模板
+.pr_agent.toml                # ★ PR-Agent 配置：审查规则、模型、中文输出
 docs/
     指南.md                   # 完整技术文档（原理 + 配置）
     demo-script.md            # 演示脚本（含坏代码速查）
@@ -41,16 +43,17 @@ docs/
 
 步骤：checkout → `npm ci` → `npm run lint` → `npm run build`
 
-## AI PR Review（claude-review.yml + gemini_review.py）
+## AI PR Review（pr-agent.yml + .pr_agent.toml）
 
-PR 打开/更新时触发，**当前实际运行 Gemini**（需配置 Secret `GEMINI_API_KEY`）。
+PR 打开/更新时触发，使用 **PR-Agent 开源方案**（需配置 Secret `GEMINI_API_KEY`）。
 
 执行路径：
-1. workflow 用 `git diff` 生成 `diff.txt`
-2. 调用 `scripts/gemini_review.py`：自动选可用 Gemini 模型 → 对 diff 按五维度（功能正确性/代码质量/性能/安全性/可维护性）各评 0-10 分 → 用 `gh pr comment` 贴到 PR 评论
-3. 总分 ≥ 35/50 → exit 0（通过），< 35 → exit 1（workflow 失败）
+1. PR 打开 → `pr-agent.yml` 触发 `qodo-ai/pr-agent@main`
+2. 读取 `.pr_agent.toml` 中的配置和 `extra_instructions` 审查规则
+3. 调用 Gemini API → 自动生成 PR 描述 + 中文 review 评论（区分必须修改/建议优化）
+4. 支持 PR 评论命令：`/review` `/describe` `/improve` `/ask 问题`
 
-**切换到 Claude**：Secrets 加 `ANTHROPIC_API_KEY`，注释掉 `gemini-review` job，取消注释 `claude-review` job。详见 `docs/claude-review-setup.md`。
+**切换 AI**：编辑 `pr-agent.yml`，注释/取消注释对应的 MODEL 和 KEY 两行即可切换 Claude/GPT。详见 `docs/指南.md`。
 
 ## GitHub 协作配置
 

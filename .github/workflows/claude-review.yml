@@ -1,8 +1,20 @@
-name: AI Review
+# 旧方案（已被 PR-Agent 替代，保留作参考）
+# 当前使用：.github/workflows/pr-agent.yml + .pr_agent.toml
+# 如需切换回自定义评分方案，取消注释下方内容
+
+# name: AI Review
+#
+# on:
+#   pull_request:
+#     types: [opened, synchronize, reopened]
+#
+# jobs:
+#   gemini-review:
+
+name: AI Review（已停用）
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:     # 仅手动触发，不自动运行
 
 jobs:
   gemini-review:
