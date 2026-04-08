@@ -17,10 +17,9 @@
 ```
 .github/
   workflows/
-    ci.yml              ← 构建质量门禁
-    claude-review.yml   ← AI Review 入口
-  scripts/
-    gemini_review.py    ← AI Review 实现
+    ci.yml              ← 构建质量门禁（lint + build + reviewdog）
+    pr-agent.yml        ← AI Review 入口（PR-Agent 开源方案）
+.pr_agent.toml          ← AI 审查规则配置
 ```
 
 一句话：**左边管代码能不能跑，右边管代码写得好不好。**
@@ -45,87 +44,84 @@ git push -u origin demo/good-change
 
 去 GitHub 开 PR，等约 30 秒，展示：
 - CI 绿色通过
-- Gemini 评论出现，五维打分 ≥ 40/50，显示「✅ 建议合并」
+- PR-Agent 自动生成 PR 描述（类型 + 改动说明 + 文件列表）
+- PR-Agent 发出中文 Review 评论，无严重问题
 
 ---
 
 ### 第三步：演示"坏代码"PR（3 分钟，重点）
 
 ```bash
+git checkout main && git pull
 git checkout -b demo/bad-change
 ```
 
-把以下代码粘贴进 `src/main.js` 底部：
-
-```js
-// 故意写烂的函数：命名混乱 + XSS 风险
-function a(x) {
-  var d = document.getElementById('app')
-  d.innerHTML = x   // 直接注入，XSS 风险
-  var arr = []
-  for (var i=0;i<10000;i++) { arr.push(i*i*i) }  // 无意义大循环
-  return arr
-}
-```
-
-```bash
-git add src/main.js
-git commit -m "fix: temp"
-git push -u origin demo/bad-change
-```
+`src/main.js` 已包含坏代码示例（XSS + 大循环 + 单字母命名）。
 
 去 GitHub 开 PR，等结果：
-- CI 可能通过（lint 不一定能抓住逻辑问题）
-- **Gemini 给出低分 + 指出 XSS 风险和命名问题，显示「❌ 建议修改后再合并」**
+- CI 通过（lint 不一定能抓住逻辑问题）
+- **PR-Agent 指出 XSS 风险、大循环性能问题和命名问题**
 
 这里的核心观点：**CI 管跑不跑得起来，AI Review 管写得好不好，两者互补。**
 
 ---
 
-### 第四步：说明可切换模型（1 分钟）
+### 第四步：演示交互命令（2 分钟）
 
-打开 `.github/workflows/claude-review.yml`，展示底部注释的 Claude job：
+在 PR 评论区输入命令演示：
 
-> 现在跑的是 Gemini（免费），团队内部可以切换到 Claude，改两行配置就行。
-> 两个模型用的是同一套五维评分 prompt，结果可以直接对比。
+| 命令 | 演示效果 |
+|------|---------|
+| `/improve` | AI 给出具体修复代码（含可 commit 的 diff） |
+| `/ask XSS 怎么修` | AI 针对这个 PR 回答问题 |
+| `/review` | 手动重新触发 review |
 
 ---
 
-### 第五步：说明强制门禁（1 分钟）
+### 第五步：说明可切换模型（1 分钟）
 
-打开 GitHub 仓库 → Settings → Branches，指向 `main` 的 protection rules：
+打开 `.github/workflows/pr-agent.yml`，展示注释的模型配置：
+
+> 现在跑的是 Gemini（免费 1000 次/天），团队内部可以切换到 Claude 或 GPT，注释两行取消注释两行就行。
+> 审查规则在 `.pr_agent.toml` 里，跟模型无关，换模型不用改规则。
+
+---
+
+### 第六步：说明强制门禁（1 分钟）
+
+打开 GitHub 仓库 → Settings → Rules → Rulesets，指向 `main` 的保护规则：
 
 - Require CI 通过（validate job）
 - Require ≥1 人 Approve
-- 如果把 AI Review job 也加进 required checks → **AI 打低分可以直接阻断 merge**
+- AI Review 只做参考，不阻断（靠人判断是否采纳 AI 建议）
 
-> 这不是可选的建议，是强制的流程门禁。
+> CI + 人工 Approve 是硬门禁，AI Review 是辅助信息。
 
 ---
 
 ## 坏代码速查（现场直接复制）
 
 ```js
-function a(x) {
-  var d = document.getElementById('app')
-  d.innerHTML = x
-  var arr = []
-  for (var i=0;i<10000;i++) { arr.push(i*i*i) }
-  return arr
+// ❌ 问题1：直接 innerHTML 注入用户输入，XSS 风险
+const u = location.search; // 单字母命名，含义不明
+app.innerHTML = `<div class="user-info">${u}</div>`; // 未经转义直接注入
+
+// ❌ 问题2：无意义大循环，阻塞主线程
+for (let i = 0; i < 100000; i++) {
+  // 空循环，无实际业务意义
 }
 ```
 
 问题点（让 AI 帮你发现）：
-- `a` / `x` / `d`：命名完全无意义
-- `d.innerHTML = x`：XSS 注入风险
-- 无意义的 10000 次循环：性能问题
-- `var` 而不是 `const/let`：代码质量
+- `u`：单字母命名，含义不明
+- `innerHTML = location.search`：XSS 注入风险
+- 无意义的 100000 次循环：性能问题
 
 ---
 
 ## 演示前检查清单
 
 - [ ] `GEMINI_API_KEY` 已配置在 GitHub Secrets
-- [ ] branch protection 已开启（CI required）
+- [ ] Rulesets 已开启（CI required + 1 approval）
 - [ ] 本地 `npm run check` 通过
 - [ ] 已有一个干净的 `main` 分支

@@ -24,18 +24,21 @@ npm run dev      # 启动开发服务器
 
 | 文件 | 作用 |
 |------|------|
-| `.github/workflows/ci.yml` | CI：push/PR 时自动跑 lint + build |
-| `.github/workflows/claude-review.yml` | AI Review：PR 时 Gemini 自动打分（Claude 预留） |
-| `.github/pull_request_template.md` | PR 模板：含前端五维打分表 |
+| `.github/workflows/ci.yml` | CI：push/PR 时自动跑 lint + build + reviewdog inline comment |
+| `.github/workflows/pr-agent.yml` | AI Review：PR-Agent 开源方案，支持 Gemini/Claude/GPT 切换 |
+| `.pr_agent.toml` | PR-Agent 配置：审查规则、模型、中文输出 |
+| `.github/pull_request_template.md` | PR 模板：交付 Checklist |
 | `docs/指南.md` | 中文主文档：原理、配置、演示流程 |
 
 ## GitHub 仓库设置
 
 ```
-Settings → Branches → main → 开启 branch protection：
+Settings → Rules → Rulesets → New branch ruleset
+Target: main
+
 ✅ Require pull request before merging（至少 1 approval）
-✅ Require status checks（添加 "validate"）
-✅ Require conversation resolution
+✅ Require status checks to pass（添加 "validate"）
+✅ Block force pushes
 ```
 
 详见 [docs/指南.md](docs/指南.md)
