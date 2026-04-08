@@ -5,15 +5,22 @@
 [config]
 response_language = "zh-CN"
 
+# ── 自动触发行为 ─────────────────────────────────────────────
 [github_action_config]
 auto_review = true        # PR 打开时自动执行 review
 auto_describe = true      # PR 打开时自动生成描述
-auto_improve = false      # 不自动提代码修改建议（避免太吵）
+auto_improve = false      # 不自动提代码修改建议（可用 /improve 手动触发）
+
+# ── Review 内容控制 ───────────────────────────────────────────
+[pr_reviewer]
+require_estimate_effort_to_review = true   # 显示 review 所需精力（1-5）
+require_tests_review = false               # 关闭「No relevant tests」（项目无测试框架）
+require_security_review = true             # 显示安全问题分析
+require_ticket_analysis_review = false     # 关闭 ticket 关联分析（无 issue tracker）
 
 # ============================================================
 # ✏️  定制化审查规则（修改这里，push 后即生效）
 # ============================================================
-[pr_reviewer]
 extra_instructions = """
 你是一位资深前端工程师，专注于游戏平台开发（React/TypeScript/SolidJS）。
 审查时重点关注以下规则：
@@ -42,14 +49,16 @@ extra_instructions = """
 - 指出问题时同时给出修改建议
 """
 
+# ── PR 描述生成 ───────────────────────────────────────────────
 [pr_description]
 publish_labels = true             # 自动打标签
 use_bullet_points = true          # 描述用列表格式
 
-[pr_reviewer]
-require_tests_review = false      # 关闭「No relevant tests」提示（项目无测试框架）
-require_estimate_effort_to_review = false  # 关闭「Estimated effort」评估和标签
+# ── /improve 命令：代码改进建议 ──────────────────────────────
+[pr_code_suggestions]
+num_code_suggestions = 4          # 最多给 4 条改进建议
 
+# ── 忽略文件 ─────────────────────────────────────────────────
 [ignore]
 glob = [
   "*.lock",
