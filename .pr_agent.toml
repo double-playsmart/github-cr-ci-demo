@@ -43,7 +43,12 @@ extra_instructions = """
 """
 
 [pr_description]
-publish_labels = true     # 自动打标签
+publish_labels = true             # 自动打标签
+use_bullet_points = true          # 描述用列表格式
+
+[pr_reviewer]
+require_tests_review = false      # 关闭「No relevant tests」提示（项目无测试框架）
+require_estimate_effort_to_review = false  # 关闭「Estimated effort」评估和标签
 
 [ignore]
 glob = [
