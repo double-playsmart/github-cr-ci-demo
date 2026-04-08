@@ -1,6 +1,6 @@
 # CR / CI 流程迁移指南
 
-> 目标：将本仓库验证过的 Code Review + CI + AI Review 流程，快速复制到游戏组的 GitHub 仓库（games2、game-core、game-sdk 等）。
+> 目标：将本仓库验证过的 Code Review + CI + AI Review 流程，快速复制到团队的其他 GitHub 仓库。
 >
 > 本文档面向 Claude / AI 协作者和团队成员，提供完整上下文和逐步操作。
 
@@ -198,7 +198,7 @@ glob = [
 
 ### Step 4：编写 ci.yml（按项目调整）
 
-games2 示例：
+pnpm + TypeScript 项目示例：
 
 ```yaml
 # .github/workflows/ci.yml
