@@ -28,9 +28,9 @@ src/style.css                 # CSS Grid 布局、渐变、backdrop-filter
   pull_request_template.md    # PR 填写模板
 .pr_agent.toml                # ★ PR-Agent 配置：审查规则、模型、中文输出
 docs/
-    指南.md                   # 完整技术文档（原理 + 配置）
-    汇报总结.md               # 面向团队的汇报材料
-    migration-guide.md        # CR/CI 流程迁移指南
+    指南.md                   # 仓库入门（目录结构 + 基本配置）
+    ai-review-guide.md        # AI Review 方案文档（分类/对比/流程/迁移/FAQ）
+    pr-agent-config.md        # .pr_agent.toml 配置手册
 ```
 
 ## CI 流程（ci.yml）
@@ -41,12 +41,12 @@ docs/
 
 ## AI PR Review（pr-agent.yml + .pr_agent.toml）
 
-PR 打开/更新时触发，使用 **PR-Agent 开源方案**（需配置 Secret `GEMINI_API_KEY`）。
+PR 打开/更新时触发，使用 **PR-Agent 开源方案**（需配置 Secret `ANTHROPIC_API_KEY`）。
 
 执行路径：
 1. PR 打开 → `pr-agent.yml` 触发 `qodo-ai/pr-agent@main`
 2. 读取 `.pr_agent.toml` 中的配置和 `extra_instructions` 审查规则
-3. 调用 Gemini API → 自动生成 PR 描述 + 中文 review 评论（区分必须修改/建议优化）
+3. 调用 Claude Haiku API → 自动生成 PR 描述 + 中文 review 评论
 4. 支持 PR 评论命令：`/review` `/describe` `/improve` `/ask 问题`
 
 **切换 AI**：编辑 `pr-agent.yml`，注释/取消注释对应的 MODEL 和 KEY 两行即可切换 Claude/GPT。详见 `docs/指南.md`。
