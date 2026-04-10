@@ -66,8 +66,10 @@ PR 打开/更新时触发，使用 **PR-Agent 开源方案**（需配置 Secret 
 ## 文档维护规则
 
 - 修改 `.pr_agent.toml` 时，**必须同步更新** `docs/pr-agent-config.md` 中对应的配置表（当前值、状态列）
-- 修改 workflow 文件时，检查 `docs/指南.md` 和 `docs/migration-guide.md` 是否需要更新
+- 修改 workflow 文件时，检查 `docs/指南.md` 和 `docs/ai-review-guide.md` 是否需要更新
+- 创建纯文档 PR 时，必须加 `skip-ai-review` 标签
+- 未经用户明确指示，不得关闭任何 PR
 
 ## 项目定位
 
-这是一个用于演示 GitHub Code Review 与 CI 流程的教学示例项目。改动应保持最小化、流程可见。迁移指南见 `docs/migration-guide.md`。
+这是一个用于演示 GitHub Code Review 与 CI 流程的教学示例项目。改动应保持最小化、流程可见。方案文档见 `docs/ai-review-guide.md`。

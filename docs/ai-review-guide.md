@@ -58,12 +58,13 @@ AI 代码审查方案分两大类：
 
 ### 1.4 数据安全
 
-自托管模式，代码 diff 只发给配置的 AI API（Claude/Gemini/GPT），不经过任何第三方服务器。
+自托管模式，代码 diff 只发给配置的 AI API，不经过任何第三方服务器。
 
-
-### 1.3 数据安全
-
-自托管模式，代码 diff 只发给配置的 AI API（Claude/Gemini/GPT），不经过 PR-Agent 或任何第三方服务器。
+| API | 数据训练 | 数据留存 |
+|-----|---------|---------|
+| Anthropic (Claude) | 不训练 | 不留存 |
+| Google (Gemini) | 不训练 | 留存 30 天 |
+| OpenAI (GPT) | 不训练 | 留存 30 天 |
 
 
 
@@ -181,26 +182,40 @@ on:
 
 仓库 → Settings → Secrets and variables → Actions → New repository secret
 
-
-| Secret              | 来源                                                      |
-| ------------------- | ------------------------------------------------------- |
+| Secret | 来源 |
+|--------|------|
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com/) |
 
+### Step 2：复制配置文件
 
-Gemini 免费但额度低（20 次/天），建议直接用 Claude。
+| 文件 | 作用 |
+|------|------|
+| `.github/workflows/pr-agent.yml` | PR-Agent 触发入口 + 模型配置 |
+| `.pr_agent.toml` | 审查规则 + 功能开关 |
 
-### Step 2：复制两个文件
-
-1. `.github/workflows/pr-agent.yml` — 触发入口
-2. `.pr_agent.toml` — 审查规则配置
-
-从 demo 仓库直接复制，根据项目调整 `extra_instructions`。
+从 demo 仓库复制，按项目调整 `extra_instructions` 和 `[ignore] glob`。
 
 ### Step 3：创建 skip 标签
 
 ```bash
 gh label create "skip-ai-review" --color "ededed" --description "跳过 AI Review"
 ```
+
+### Step 4：配置 Rulesets（可选）
+
+Settings → Rules → Rulesets → New branch ruleset：
+- Target: `main`
+- Require pull request（1 approval）
+- Require status checks: `validate`（CI job 名）
+- Block force pushes
+
+### Step 5：按仓库定制 checklist
+
+- [ ] `extra_instructions` 补充项目特有审查规则
+- [ ] `require_tests_review` 有测试框架时设为 `true`
+- [ ] `[ignore] glob` 加入翻译文件、生成文件等
+- [ ] `pull_request_template.md` 按团队流程调整
+- [ ] `CODEOWNERS` 填写实际代码负责人
 
 ---
 
@@ -307,4 +322,16 @@ Gemini 有免费额度但只有 20 RPD/天（一天最多 10 个 PR），适合 
 **Q: @claude 需要额外配置吗？**
 
 > 不需要。安装 Claude GitHub App 后直接可用，在 PR 评论区输入 `@claude 问题` 即可。
+
+**Q: PR-Agent fallback 到 o4-mini 失败？**
+
+> 设 `fallback_models = []` 禁用自动 fallback。
+
+**Q: skip 标签打了但 AI 还是跑了？**
+
+> `.pr_agent.toml` 的 `ignore_pr_labels` 对 auto actions 不生效，必须在 `pr-agent.yml` 的 job `if` 条件里检查标签。
+
+**Q: CI validate 一直 Waiting？**
+
+> Rulesets 要求的 status check 必须至少跑过一次才能被搜到。先提一个 PR 让 CI 跑完再配置 Rulesets。
 
