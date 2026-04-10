@@ -18,23 +18,47 @@
 
 PR-Agent 负责每个 PR 的自动覆盖（低成本跑量），@claude 负责复杂问题的深度分析（免费，可读整个仓库上下文）。
 
-### 1.2 方案选型
+### 1.2 市场方案分类
 
-当前采用 **PR-Agent + @claude 组合方案**：
+AI 代码审查方案分两大类：
 
-| 方案 | 角色 | 成本 | 结论 |
-|------|------|------|------|
-| **PR-Agent** | 自动审查（标签/评分/TODO/精力评估） | ~$0.006/次（API） | ✅ 主力 |
-| **@claude GitHub App** | 手动深度分析（读整个仓库） | 订阅额度（不额外付费） | ✅ 补充 |
+| 类别 | 特点 | 代表 |
+|------|------|------|
+| **托管服务（SaaS）** | 开箱即用，按次/月收费，不控制基础设施 | Anthropic Claude Code Review、Gemini Code Assist、CodeRabbit、GitHub Copilot Review |
+| **自托管 API 方案** | 跑在你的 GitHub Actions 里，用自己的 API key/token | PR-Agent、claude-code-action、自写脚本 |
 
-其他方案对比：
+自托管方案的细分：
 
-| 方案 | 优点 | 缺点 | 结论 |
-|------|------|------|------|
-| claude-code-action（自动化） | 可阻断合并 | 功能需自己写 prompt，API 成本高 15 倍 | 不采用 |
-| Claude Code Review（托管） | 深度分析 | $15-25/次 | ❌ 太贵 |
-| CodeRabbit | 开箱即用 | 2025 年 RCE 漏洞 | ❌ |
-| GitHub Copilot Review | 微软官方 | 锁定 GitHub + OpenAI | 备选 |
+| 工具 | 封装程度 | 自动审查 | 标签/评分/TODO | 行内评论 | 耗时 | 成本 |
+|------|---------|---------|--------------|---------|------|------|
+| **PR-Agent** | 高（开箱即用） | ✅ | ✅ 全内置 | 仅 /improve | ~40 秒 | ~$0.006/次 |
+| **claude-code-action（自动）** | 低（需写 prompt） | ✅ | ❌ | ✅ | ~4 分钟 | 订阅额度 |
+| **@claude（手动）** | 低（按需提问） | ❌ | ❌ | ✅ | ~1 分钟 | 订阅额度 |
+| **自写脚本** | 无（完全自定义） | ✅ | 自己实现 | 自己实现 | 取决于实现 | API token |
+
+### 1.3 当前方案
+
+**PR-Agent（自动）+ @claude（手动补充）**
+
+| 工具 | 角色 | 触发方式 | 成本 |
+|------|------|---------|------|
+| **PR-Agent** | 自动审查（describe + review + 标签 + 评分 + TODO） | PR 创建时自动 | API token（~$0.006/次） |
+| **@claude** | 手动深度分析（读整个仓库上下文） | PR 评论区 `@claude 问题` | 订阅额度（不额外付费） |
+
+不采用 claude-code-action 自动审查：每次 4 分钟、消耗大量 token、输出不稳定（可能无评论）。
+
+其他方案不采用原因：
+
+| 方案 | 不采用原因 |
+|------|-----------|
+| Claude Code Review（托管） | $15-25/次，太贵 |
+| Gemini Code Assist | 数据安全存疑 |
+| CodeRabbit | 2025 年 RCE 漏洞 |
+| GitHub Copilot Review | 锁定 GitHub + OpenAI |
+
+### 1.4 数据安全
+
+自托管模式，代码 diff 只发给配置的 AI API（Claude/Gemini/GPT），不经过任何第三方服务器。
 
 
 ### 1.3 数据安全
