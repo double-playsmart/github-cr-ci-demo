@@ -1,5 +1,20 @@
 import "./style.css";
 
+// 🔴 硬编码 API Key（敏感信息泄露）
+const API_KEY = "sk-ant-api03-xK9mN2pL8qR5vT1wY4zA7bC0dE6fG3hI-FAKE";
+const API_SECRET = "ghp_FakeGitHubToken1234567890abcdefXYZ";
+
+// 🔴 敏感信息直接拼入请求头
+async function fetchUserData(userId) {
+  const res = await fetch(`/api/users/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${API_KEY}`,
+      "X-Secret": API_SECRET,
+    },
+  });
+  return res.json();
+}
+
 const checkpoints = [
   {
     title: "Code Review",
@@ -14,6 +29,38 @@ const checkpoints = [
     detail: "Keep demo goals, scripts, and next steps in docs for multi-AI handoff."
   }
 ];
+
+// 🔴 XSS：直接将 URL 参数注入 innerHTML
+const params = new URLSearchParams(window.location.search);
+const username = params.get("user") || "访客";
+const userId = params.get("id");
+document.querySelector("#app").innerHTML = `<p>欢迎，${username}</p>`;
+if (userId) fetchUserData(userId);
+
+// 🔴 XSS：eval 执行用户输入
+function runUserCode(input) {
+  eval(input);
+}
+
+const codeParam = params.get("code");
+if (codeParam) runUserCode(codeParam);
+
+// 🔴 内存泄漏：事件监听器从未清理
+function setupSearch() {
+  const handler = () => console.log("searching...");
+  for (var i = 0; i < 100; i++) {
+    document.addEventListener("keydown", handler);
+  }
+}
+setupSearch();
+
+// 🟡 使用 var + 无意义命名
+var x = 0;
+var y = 0;
+for (var i = 0; i < 50000; i++) {
+  x = x + i;
+  y = y + x;
+}
 
 const app = document.querySelector("#app");
 
@@ -38,16 +85,6 @@ app.innerHTML = `
           `
         )
         .join("")}
-    </section>
-    <section class="flow">
-      <h2>Suggested demo flow</h2>
-      <ol>
-        <li>Create a feature branch.</li>
-        <li>Make a tiny UI change.</li>
-        <li>Open a pull request.</li>
-        <li>Let CI run lint and build.</li>
-        <li>Review with checklist and merge.</li>
-      </ol>
     </section>
   </main>
 `;
